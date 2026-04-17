@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>דוח בדק דירה</title>
+<style>
+:root {
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #6e6e73;
+  --color-text-tertiary: #aeaeb2;
+  --color-background-primary: #ffffff;
+  --color-background-secondary: #f2f2f7;
+  --color-border-tertiary: #e5e5ea;
+  --color-border-secondary: #c7c7cc;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+}
+</style>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans);direction:rtl;color:var(--color-text-primary)}
+.app{max-width:560px;margin:0 auto;padding-bottom:60px;direction:rtl}
+.topbar{background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);padding:14px 16px 0}
+.topbar-title{font-size:17px;font-weight:500;margin-bottom:12px}
+.nav{display:flex}
+.nav-btn{flex:1;padding:10px 4px;font-size:13px;border:none;background:none;cursor:pointer;color:var(--color-text-secondary);border-bottom:2px solid transparent;font-family:inherit;transition:all .15s}
+.nav-btn.active{color:var(--color-text-primary);border-bottom:2px solid #185FA5;font-weight:500}
+.page{display:none;padding:16px}
+.page.active{display:block}
+.slbl{font-size:11px;font-weight:500;color:var(--color-text-secondary);letter-spacing:.05em;text-transform:uppercase;margin:20px 0 8px;padding-bottom:6px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.slbl:first-child{margin-top:0}
+.stat-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:20px}
+.stat{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:10px 6px;text-align:center}
+.stat-num{font-size:22px;font-weight:500}
+.stat-lbl{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+.room-row{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);margin-bottom:8px;cursor:pointer}
+.room-row:active{background:var(--color-background-secondary)}
+.room-left{display:flex;align-items:center;gap:10px}
+.room-icon{width:34px;height:34px;border-radius:var(--border-radius-md);background:var(--color-background-secondary);display:flex;align-items:center;justify-content:center;font-size:16px}
+.room-name{font-size:14px;font-weight:500}
+.room-sub{font-size:12px;color:var(--color-text-secondary);margin-top:1px}
+.badge{font-size:12px;padding:3px 10px;border-radius:20px;font-weight:500}
+.b0{background:var(--color-background-secondary);color:var(--color-text-tertiary)}
+.b-high{background:#FCEBEB;color:#A32D2D}
+.b-med{background:#FAEEDA;color:#854F0B}
+.b-nc{background:#EEEDFE;color:#3C3489}
+.b-low{background:#EAF3DE;color:#3B6D11}
+.fg{margin-bottom:12px}
+.fg label{font-size:13px;color:var(--color-text-secondary);display:block;margin-bottom:5px}
+.fg input,.fg select,.fg textarea{width:100%;font-size:14px;padding:10px 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:inherit;direction:rtl}
+.fg textarea{min-height:80px;resize:vertical}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.r3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.btn{padding:11px 18px;border-radius:var(--border-radius-md);font-size:14px;cursor:pointer;font-family:inherit;border:0.5px solid var(--color-border-secondary);color:var(--color-text-primary);background:var(--color-background-secondary)}
+.btn-primary{background:#E6F1FB;color:#0C447C;border-color:#85B7EB;font-weight:500}
+.btn-export{background:#0C447C;color:#E6F1FB;border-color:#0C447C;font-weight:500}
+.btn-full{width:100%;margin-bottom:8px;padding:13px}
+.overlay{min-height:520px;background:rgba(0,0,0,0.5);display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{background:var(--color-background-primary);border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;max-height:92vh;overflow-y:auto;direction:rtl}
+.handle{width:36px;height:4px;background:var(--color-border-secondary);border-radius:2px;margin:0 auto 16px}
+.sheet-title{font-size:16px;font-weight:500}
+.icard{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:12px 14px;margin-bottom:8px}
+.itop{display:flex;align-items:flex-start;gap:8px;justify-content:space-between}
+.idesc{font-size:14px;flex:1;line-height:1.5}
+.pill{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:500;white-space:nowrap;flex-shrink:0}
+.p-high{background:#FCEBEB;color:#A32D2D}
+.p-med{background:#FAEEDA;color:#854F0B}
+.p-nc{background:#EEEDFE;color:#3C3489}
+.p-low{background:#EAF3DE;color:#3B6D11}
+.imeta{font-size:12px;color:var(--color-text-secondary);margin-top:5px}
+.thumbrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.thumb{width:70px;height:70px;border-radius:var(--border-radius-md);object-fit:cover;border:0.5px solid var(--color-border-tertiary)}
+.del-btn{background:none;border:none;cursor:pointer;color:var(--color-text-tertiary);font-size:15px;padding:2px 4px;flex-shrink:0}
+.upload-zone{border:1.5px dashed var(--color-border-secondary);border-radius:var(--border-radius-md);padding:18px;text-align:center;cursor:pointer;color:var(--color-text-secondary);font-size:13px;margin-top:4px}
+.upload-zone:active{background:var(--color-background-secondary)}
+.hidden-in{display:none}
+.btn-row{display:flex;gap:8px;margin-top:16px}
+.rep-block{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px;margin-bottom:10px}
+.rep-block h3{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:10px;padding-bottom:8px;border-bottom:0.5px solid var(--color-border-tertiary)}
+.ri{display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--color-border-tertiary);align-items:flex-start}
+.ri:last-child{border:none;padding-bottom:0}
+.rdot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0}
+.d-high{background:#E24B4A}.d-med{background:#BA7517}.d-nc{background:#7F77DD}.d-low{background:#639922}
+.rbody{flex:1}
+.rtype{font-size:11px;color:var(--color-text-secondary);margin-bottom:2px}
+.rdesc{font-size:13px;line-height:1.5}
+.empty{text-align:center;padding:48px 16px;color:var(--color-text-secondary);font-size:14px}
+.sev-seg{display:flex;gap:0;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);overflow:hidden}
+.sev-opt{flex:1;padding:9px 4px;text-align:center;font-size:12px;cursor:pointer;background:var(--color-background-primary);color:var(--color-text-secondary);border:none;font-family:inherit;border-left:0.5px solid var(--color-border-secondary)}
+.sev-opt:first-child{border-left:none}
+.sev-opt.sel-high{background:#FCEBEB;color:#A32D2D;font-weight:500}
+.sev-opt.sel-med{background:#FAEEDA;color:#854F0B;font-weight:500}
+.sev-opt.sel-nc{background:#EEEDFE;color:#3C3489;font-weight:500}
+.sev-opt.sel-low{background:#EAF3DE;color:#3B6D11;font-weight:500}
+.freebox{border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px}
+.freebox label{font-size:13px;color:var(--color-text-secondary);display:block;margin-bottom:6px}
+.freebox textarea{width:100%;font-size:14px;padding:10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);font-family:inherit;min-height:100px;resize:vertical;direction:rtl}
+</style>
+
+<div class="app" dir="rtl">
+<div class="topbar">
+  <div class="topbar-title">דוח בדק דירה</div>
+  <div class="nav">
+    <button class="nav-btn active" onclick="goPage('rooms',this)">חדרים</button>
+    <button class="nav-btn" onclick="goPage('details',this)">פרטי נכס</button>
+    <button class="nav-btn" onclick="goPage('report',this)">דוח מסכם</button>
+  </div>
+</div>
+
+<div id="page-rooms" class="page active">
+  <div class="stat-row" id="stat-row">
+    <div class="stat"><div class="stat-num" id="s-high" style="color:#E24B4A">0</div><div class="stat-lbl">חמורים</div></div>
+    <div class="stat"><div class="stat-num" id="s-med" style="color:#BA7517">0</div><div class="stat-lbl">בינוניים</div></div>
+    <div class="stat"><div class="stat-num" id="s-nc" style="color:#7F77DD">0</div><div class="stat-lbl">לא תואם</div></div>
+    <div class="stat"><div class="stat-num" id="s-low" style="color:#639922">0</div><div class="stat-lbl">קלים</div></div>
+  </div>
+  <div class="slbl">חדרים ואזורים</div>
+  <div id="room-list"></div>
+</div>
+
+<div id="page-details" class="page">
+  <div class="slbl">פרטי הנכס</div>
+  <div class="fg"><label>כתובת מלאה</label><input id="d-addr" type="text" placeholder="רחוב, מספר, עיר"></div>
+  <div class="r3">
+    <div class="fg"><label>גוש</label><input id="d-gush" type="text"></div>
+    <div class="fg"><label>חלקה</label><input id="d-chelka" type="text"></div>
+    <div class="fg"><label>מגרש</label><input id="d-migrash" type="text"></div>
+  </div>
+  <div class="r3">
+    <div class="fg"><label>דירה</label><input id="d-apt" type="text"></div>
+    <div class="fg"><label>קומה</label><input id="d-floor" type="text"></div>
+    <div class="fg"><label>בניין</label><input id="d-bld" type="text"></div>
+  </div>
+  <div class="slbl">צדדים</div>
+  <div class="r2">
+    <div class="fg"><label>שם הרוכש</label><input id="d-buyer" type="text"></div>
+    <div class="fg"><label>שם הקבלן</label><input id="d-seller" type="text"></div>
+  </div>
+  <div class="r2">
+    <div class="fg"><label>תאריך בדיקה</label><input id="d-date" type="date"></div>
+    <div class="fg"><label>שם הבודק</label><input id="d-inspector" type="text"></div>
+  </div>
+</div>
+
+<div id="page-report" class="page">
+  <div id="report-area"></div>
+  <div class="freebox">
+    <label>הערות חופשיות לדוח</label>
+    <textarea id="free-notes" placeholder="הוסף כאן כל הערה, מסקנה, המלצה או פירוט נוסף שיופיע בסוף הדוח..."></textarea>
+  </div>
+  <button class="btn btn-primary btn-full" onclick="buildReport()">רענן דוח</button>
+  <button class="btn btn-export btn-full" onclick="exportReport()">ייצוא דוח פורמלי — שמור / הדפס</button>
+  <button class="btn btn-full" onclick="sendPrompt('נסח לי את דוח הבדק בצורה פורמלית-משפטית לפי חוק המכר, כולל כל הליקויים שהוזנו')">ניסוח משפטי-פורמלי על ידי קלוד ↗</button>
+</div>
+</div>
+
+<div class="overlay" id="room-overlay">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <div class="sheet-title" id="sheet-title"></div>
+      <button class="btn" style="padding:6px 14px;font-size:13px" onclick="closeOv('room-overlay')">סגור</button>
+    </div>
+    <div id="sheet-list"></div>
+    <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="openAdd()">+ הוסף ליקוי</button>
+  </div>
+</div>
+
+<div class="overlay" id="add-overlay">
+  <div class="sheet">
+    <div class="handle"></div>
+    <div class="sheet-title" style="margin-bottom:16px">ליקוי חדש</div>
+
+    <div class="fg"><label>תיאור הליקוי</label>
+      <textarea id="i-desc" placeholder="תאר את הבעיה בפירוט — מה, היכן, מידות אם רלוונטי..."></textarea>
+    </div>
+
+    <div class="fg"><label>חומרה / סיווג</label>
+      <div class="sev-seg">
+        <button class="sev-opt" id="sev-high" onclick="setSev('high')">חמור</button>
+        <button class="sev-opt sel-med" id="sev-med" onclick="setSev('med')">בינוני</button>
+        <button class="sev-opt" id="sev-nc" onclick="setSev('nc')">לא תואם מפרט</button>
+        <button class="sev-opt" id="sev-low" onclick="setSev('low')">קל</button>
+      </div>
+    </div>
+
+    <div class="fg"><label>סוג ליקוי</label>
+      <select id="i-type">
+        <option>ריצוף / קרמיקה</option>
+        <option>טיח / צבע / גמר</option>
+        <option>חלונות / דלתות</option>
+        <option>אינסטלציה / צנרת</option>
+        <option>חשמל / תקשורת</option>
+        <option>רטיבות / איטום</option>
+        <option>מטבח / ארונות</option>
+        <option>מיזוג / חימום</option>
+        <option>גב"ס / תקרה</option>
+        <option>ממ"ד</option>
+        <option>מרפסת</option>
+        <option>לא תואם מפרט</option>
+        <option>אחר</option>
+      </select>
+    </div>
+
+    <div class="fg"><label>תמונות (אופציונלי)</label>
+      <div class="upload-zone" onclick="document.getElementById('img-in').click()">
+        לחץ לצילום או בחירה מהגלריה
+      </div>
+      <input type="file" id="img-in" accept="image/*" multiple class="hidden-in" onchange="handleImgs(event)">
+      <div class="thumbrow" id="img-prev"></div>
+    </div>
+
+    <div class="fg"><label>הערה נוספת (אופציונלי)</label>
+      <textarea id="i-note" placeholder="פרטים נוספים, המלצה, הפניה לסעיף במפרט..."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" style="flex:1" onclick="closeOv('add-overlay')">ביטול</button>
+      <button class="btn btn-primary" style="flex:2" onclick="saveIssue()">שמור ליקוי</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ROOMS=[
+  {id:'entrance',icon:'🚪',name:'כניסה ומסדרון',issues:[]},
+  {id:'living',icon:'🛋',name:'סלון / חדר אוכל',issues:[]},
+  {id:'kitchen',icon:'🍳',name:'מטבח',issues:[]},
+  {id:'bed1',icon:'🛏',name:'חדר שינה — הורים',issues:[]},
+  {id:'bed2',icon:'🛏',name:'חדר שינה 2',issues:[]},
+  {id:'bath1',icon:'🚿',name:'חדר רחצה (מקלחת)',issues:[]},
+  {id:'bath2',icon:'🪥',name:'שירותי אורחים',issues:[]},
+  {id:'mmad',icon:'🛡',name:'ממ"ד',issues:[]},
+  {id:'balcony',icon:'🌤',name:'מרפסת שמש',issues:[]},
+  {id:'general',icon:'🏗',name:'כללי / חיצוני',issues:[]},
+];
+
+const SAMPLE={
+  'd-addr':'שדרות מגרש 1703, שכונת נאות שקמה',
+  'd-gush':'3210','d-chelka':'28,29,30,31','d-migrash':'1703',
+  'd-apt':'25','d-floor':'6','d-bld':'2',
+  'd-buyer':'—','d-seller':'א.ג. בוסקילה יזמות ובניה',
+  'd-inspector':'—'
+};
+
+const SAMPLE_ISSUES={
+  living:[
+    {desc:'סדק בטיח הקיר החיצוני בין חלון לפינה — אורך כ-40 ס"מ, רוחב כ-2 מ"מ',sev:'med',type:'טיח / צבע / גמר',imgs:[],note:''},
+    {desc:'ריצוף הסלון — אריח שבור בפינה הצפונית-מערבית, 60x60 ס"מ',sev:'high',type:'ריצוף / קרמיקה',imgs:[],note:'לפי סעיף 3.2 במפרט — ריצוף גרניט פורצלן 60x60'},
+  ],
+  kitchen:[
+    {desc:'ארון תחתון מתחת לכיור — דלת לא נסגרת כהלכה, צירים לא מיושרים',sev:'med',type:'מטבח / ארונות',imgs:[],note:''},
+    {desc:'חיבור צינור מים חמים לברז מטבח — טפטוף קל בחיבור',sev:'high',type:'אינסטלציה / צנרת',imgs:[],note:''},
+    {desc:'גוון חיפוי אחורי המטבח שונה מהמצוין במפרט (גוון בהיר במקום אפור כהה)',sev:'nc',type:'לא תואם מפרט',imgs:[],note:'לפי נספח ג — טבלת זיכויים, סעיף מטבח'},
+  ],
+  bed1:[
+    {desc:'דלת חדר השינה — מסגרת לא ישרה, פער של כ-4 מ"מ בצד הציר',sev:'med',type:'חלונות / דלתות',imgs:[],note:''},
+    {desc:'מזגן — יחידה פנימית מותקנת גבוה מהמפורט במפרט (2.50 מ\' במקום 2.30 מ\')',sev:'nc',type:'לא תואם מפרט',imgs:[],note:'לפי סעיף 3.6 במפרט'},
+  ],
+  bed2:[
+    {desc:'צבע תקרה — כתמי לחות בפינה הצפונית, שטח כ-20x20 ס"מ',sev:'high',type:'רטיבות / איטום',imgs:[],note:''},
+  ],
+  bath1:[
+    {desc:'ריצוף מקלחת — אריח אחד שבור ב-2 בקצה הדרומי',sev:'med',type:'ריצוף / קרמיקה',imgs:[],note:''},
+    {desc:'מראה חדר הרחצה — לא סופקה, למרות שמופיעה במפרט',sev:'nc',type:'לא תואם מפרט',imgs:[],note:'לפי מפרט — מראה כוללת מסגרת אלומיניום'},
+    {desc:'ברז מקלחת — לחץ מים חלש, ייתכן חסימה בשסתום',sev:'low',type:'אינסטלציה / צנרת',imgs:[],note:''},
+  ],
+  bath2:[
+    {desc:'אסלה — לא מתרוקנת כהלכה, מיכל הורדה לא מתמלא מספיק',sev:'med',type:'אינסטלציה / צנרת',imgs:[],note:''},
+  ],
+  mmad:[
+    {desc:'דלת ממ"ד — אינה נסגרת הרמטית, פיר לא אטום',sev:'high',type:'ממ"ד',imgs:[],note:'ליקוי בטיחותי — יש לתקן לפני מסירה'},
+  ],
+  balcony:[
+    {desc:'ריצוף מרפסת — רמת מישוש לא אחידה, 3 אריחים בולטים',sev:'med',type:'ריצוף / קרמיקה',imgs:[],note:''},
+    {desc:'מעקה מרפסת — גובה 90 ס"מ בלבד, לפי תקן צריך להיות 110 ס"מ לפחות',sev:'high',type:'אחר',imgs:[],note:'ליקוי בטיחותי לפי תקן ישראלי 1142'},
+  ],
+  general:[
+    {desc:'חניה — מספר החניה לא מסומן כמצוין בחוזה',sev:'low',type:'אחר',imgs:[],note:''},
+  ]
+};
+
+Object.keys(SAMPLE_ISSUES).forEach(rid=>{
+  const r=ROOMS.find(x=>x.id===rid);
+  if(r) r.issues=[...SAMPLE_ISSUES[rid]];
+});
+
+Object.keys(SAMPLE).forEach(k=>{
+  const el=document.getElementById(k);
+  if(el) el.value=SAMPLE[k];
+});
+document.getElementById('d-date').value=new Date().toISOString().split('T')[0];
+
+let activeRoom=null,curSev='med',pendingImgs=[];
+
+function setSev(v){
+  curSev=v;
+  ['high','med','nc','low'].forEach(s=>{
+    const el=document.getElementById('sev-'+s);
+    el.className='sev-opt'+(v===s?' sel-'+s:'');
+  });
+}
+
+function renderRooms(){
+  const list=document.getElementById('room-list');
+  list.innerHTML='';
+  let th=0,tm=0,tn=0,tl=0;
+  ROOMS.forEach(r=>{
+    const n=r.issues.length;
+    const h=r.issues.filter(i=>i.sev==='high').length;
+    const m=r.issues.filter(i=>i.sev==='med').length;
+    const nc=r.issues.filter(i=>i.sev==='nc').length;
+    const l=r.issues.filter(i=>i.sev==='low').length;
+    th+=h;tm+=m;tn+=nc;tl+=l;
+    let cls='b0',lbl='ללא ליקויים';
+    if(n>0){
+      lbl=n+' ליקו'+(n===1?'י':'יים');
+      cls=h>0?'b-high':nc>0?'b-nc':m>0?'b-med':'b-low';
+    }
+    const parts=[h&&h+' חמורים',nc&&nc+' לא תואם',m&&m+' בינוניים',l&&l+' קלים'].filter(Boolean);
+    const sub=parts.join(' · ');
+    list.innerHTML+=`<div class="room-row" onclick="openRoom('${r.id}')">
+      <div class="room-left">
+        <div class="room-icon">${r.icon}</div>
+        <div><div class="room-name">${r.name}</div>${sub?`<div class="room-sub">${sub}</div>`:''}</div>
+      </div>
+      <span class="badge ${cls}">${lbl}</span>
+    </div>`;
+  });
+  document.getElementById('s-high').textContent=th;
+  document.getElementById('s-med').textContent=tm;
+  document.getElementById('s-nc').textContent=tn;
+  document.getElementById('s-low').textContent=tl;
+}
+
+function openRoom(id){
+  activeRoom=ROOMS.find(r=>r.id===id);
+  document.getElementById('sheet-title').textContent=activeRoom.icon+' '+activeRoom.name;
+  renderSheet();
+  document.getElementById('room-overlay').classList.add('open');
+}
+
+function renderSheet(){
+  const c=document.getElementById('sheet-list');
+  if(!activeRoom.issues.length){c.innerHTML='<div class="empty">אין ליקויים בחדר זה</div>';return;}
+  c.innerHTML=activeRoom.issues.map((iss,i)=>`
+    <div class="icard">
+      <div class="itop">
+        <div class="idesc">${iss.desc}</div>
+        <div style="display:flex;gap:6px;align-items:center;flex-shrink:0">
+          <span class="pill p-${iss.sev}">${iss.sev==='high'?'חמור':iss.sev==='med'?'בינוני':iss.sev==='nc'?'לא תואם':'קל'}</span>
+          <button class="del-btn" onclick="delIssue(${i})">✕</button>
+        </div>
+      </div>
+      <div class="imeta">${iss.type}${iss.note?' · '+iss.note:''}</div>
+      ${iss.imgs&&iss.imgs.length?`<div class="thumbrow">${iss.imgs.map(s=>`<img src="${s}" class="thumb">`).join('')}</div>`:''}
+    </div>`).join('');
+}
+
+function delIssue(idx){activeRoom.issues.splice(idx,1);renderSheet();renderRooms()}
+
+function openAdd(){
+  pendingImgs=[];
+  document.getElementById('i-desc').value='';
+  document.getElementById('i-note').value='';
+  document.getElementById('i-type').value='ריצוף / קרמיקה';
+  document.getElementById('img-prev').innerHTML='';
+  document.getElementById('img-in').value='';
+  setSev('med');
+  document.getElementById('add-overlay').classList.add('open');
+}
+
+function handleImgs(e){
+  for(const f of e.target.files){
+    const r=new FileReader();
+    r.onload=ev=>{
+      pendingImgs.push(ev.target.result);
+      document.getElementById('img-prev').innerHTML+=`<img src="${ev.target.result}" class="thumb">`;
+    };
+    r.readAsDataURL(f);
+  }
+}
+
+function saveIssue(){
+  const desc=document.getElementById('i-desc').value.trim();
+  if(!desc){alert('נא להזין תיאור');return;}
+  activeRoom.issues.push({
+    desc,sev:curSev,
+    type:document.getElementById('i-type').value,
+    imgs:[...pendingImgs],
+    note:document.getElementById('i-note').value.trim()
+  });
+  closeOv('add-overlay');
+  renderSheet();
+  renderRooms();
+}
+
+function closeOv(id){document.getElementById(id).classList.remove('open')}
+
+function goPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='report') buildReport();
+}
+
+function buildReport(){
+  const all=ROOMS.flatMap(r=>r.issues.map(i=>({...i,room:r.name})));
+  const h=all.filter(i=>i.sev==='high').length;
+  const m=all.filter(i=>i.sev==='med').length;
+  const nc=all.filter(i=>i.sev==='nc').length;
+  const l=all.filter(i=>i.sev==='low').length;
+  const addr=document.getElementById('d-addr').value||'—';
+  const buyer=document.getElementById('d-buyer').value||'—';
+  const seller=document.getElementById('d-seller').value||'—';
+  const dateVal=document.getElementById('d-date').value;
+  const dateStr=dateVal?new Date(dateVal).toLocaleDateString('he-IL'):'—';
+  const insp=document.getElementById('d-inspector').value||'—';
+
+  let html=`<div class="stat-row"><div class="stat"><div class="stat-num" style="color:#E24B4A">${h}</div><div class="stat-lbl">חמורים</div></div><div class="stat"><div class="stat-num" style="color:#BA7517">${m}</div><div class="stat-lbl">בינוניים</div></div><div class="stat"><div class="stat-num" style="color:#7F77DD">${nc}</div><div class="stat-lbl">לא תואם</div></div><div class="stat"><div class="stat-num" style="color:#639922">${l}</div><div class="stat-lbl">קלים</div></div></div>`;
+
+  html+=`<div class="rep-block"><h3>פרטי הנכס</h3>
+    <table style="width:100%;font-size:13px;direction:rtl">
+      <tr><td style="color:var(--color-text-secondary);padding:4px 0;width:80px">כתובת</td><td>${addr}</td></tr>
+      <tr><td style="color:var(--color-text-secondary);padding:4px 0">רוכש</td><td>${buyer}</td></tr>
+      <tr><td style="color:var(--color-text-secondary);padding:4px 0">קבלן</td><td>${seller}</td></tr>
+      <tr><td style="color:var(--color-text-secondary);padding:4px 0">תאריך</td><td>${dateStr}</td></tr>
+      <tr><td style="color:var(--color-text-secondary);padding:4px 0">בודק</td><td>${insp}</td></tr>
+    </table></div>`;
+
+  ROOMS.forEach(r=>{
+    if(!r.issues.length)return;
+    html+=`<div class="rep-block"><h3>${r.icon} ${r.name} — ${r.issues.length} ליקויים</h3>`;
+    r.issues.forEach(iss=>{
+      const dc=iss.sev==='high'?'d-high':iss.sev==='med'?'d-med':iss.sev==='nc'?'d-nc':'d-low';
+      const pl=iss.sev==='high'?'חמור':iss.sev==='med'?'בינוני':iss.sev==='nc'?'לא תואם':'קל';
+      html+=`<div class="ri"><div class="rdot ${dc}"></div><div class="rbody"><div class="rtype">${pl} · ${iss.type}</div><div class="rdesc">${iss.desc}</div>${iss.note?`<div class="rtype" style="margin-top:3px">${iss.note}</div>`:''} ${iss.imgs&&iss.imgs.length?`<div class="thumbrow">${iss.imgs.map(s=>`<img src="${s}" class="thumb">`).join('')}</div>`:''}</div></div>`;
+    });
+    html+='</div>';
+  });
+
+  if(!all.length) html+=`<div class="empty">לא הוזנו ליקויים עדיין</div>`;
+  document.getElementById('report-area').innerHTML=html;
+}
+
+function exportReport(){
+  const all=ROOMS.flatMap(r=>r.issues.map(i=>({...i,room:r.name})));
+  const h=all.filter(i=>i.sev==='high').length;
+  const m=all.filter(i=>i.sev==='med').length;
+  const nc=all.filter(i=>i.sev==='nc').length;
+  const l=all.filter(i=>i.sev==='low').length;
+  const addr=document.getElementById('d-addr').value||'—';
+  const buyer=document.getElementById('d-buyer').value||'—';
+  const seller=document.getElementById('d-seller').value||'—';
+  const dateVal=document.getElementById('d-date').value;
+  const dateStr=dateVal?new Date(dateVal).toLocaleDateString('he-IL'):'—';
+  const insp=document.getElementById('d-inspector').value||'—';
+  const gush=document.getElementById('d-gush').value||'—';
+  const chelka=document.getElementById('d-chelka').value||'—';
+  const migrash=document.getElementById('d-migrash').value||'—';
+  const apt=document.getElementById('d-apt').value||'—';
+  const floor=document.getElementById('d-floor').value||'—';
+  const bld=document.getElementById('d-bld').value||'—';
+  const freeNotes=document.getElementById('free-notes').value||'';
+
+  let roomsHtml='';
+  ROOMS.forEach(r=>{
+    if(!r.issues.length)return;
+    roomsHtml+=`<div class="rs"><h2>${r.name}</h2><table><thead><tr><th style="width:80px">סיווג</th><th style="width:120px">סוג</th><th>תיאור ליקוי</th></tr></thead><tbody>`;
+    r.issues.forEach(iss=>{
+      const sl=iss.sev==='high'?'חמור':iss.sev==='med'?'בינוני':iss.sev==='nc'?'לא תואם מפרט':'קל';
+      const sc=iss.sev==='high'?'#A32D2D':iss.sev==='med'?'#854F0B':iss.sev==='nc'?'#3C3489':'#3B6D11';
+      const sb=iss.sev==='high'?'#FCEBEB':iss.sev==='med'?'#FAEEDA':iss.sev==='nc'?'#EEEDFE':'#EAF3DE';
+      roomsHtml+=`<tr><td><span style="background:${sb};color:${sc};padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600">${sl}</span></td><td style="font-size:12px;color:#666">${iss.type}</td><td>${iss.desc}${iss.note?`<br><span style="font-size:11px;color:#888">${iss.note}</span>`:''}</td></tr>`;
+      if(iss.imgs&&iss.imgs.length){
+        roomsHtml+=`<tr><td colspan="3"><div style="display:flex;gap:8px;flex-wrap:wrap;padding:6px 0">${iss.imgs.map(s=>`<img src="${s}" style="width:90px;height:90px;object-fit:cover;border-radius:6px;border:1px solid #ddd">`).join('')}</div></td></tr>`;
+      }
+    });
+    roomsHtml+='</tbody></table></div>';
+  });
+
+  const html=`<!DOCTYPE html><html lang="he" dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>דוח בדק — ${addr}</title>
+<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;direction:rtl;color:#1a1a1a;background:#f5f5f2;padding:20px}.wrap{max-width:800px;margin:0 auto;background:#fff;border-radius:12px;overflow:hidden}.cover{background:#0C447C;color:#fff;padding:40px 36px 32px}.cover h1{font-size:26px;font-weight:700;margin-bottom:6px}.cover p{font-size:14px;opacity:.8;margin-top:4px}.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}.ci label{font-size:11px;opacity:.7;display:block;margin-bottom:2px}.ci span{font-size:14px;font-weight:500}.sbar{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;border-bottom:1px solid #e5e5e3}.sc{padding:16px 8px;border-left:1px solid #e5e5e3}.sc:last-child{border:none}.sn{font-size:26px;font-weight:700}.sl{font-size:11px;color:#888;margin-top:2px}.body{padding:28px 36px}.rs{margin-bottom:28px}.rs h2{font-size:15px;font-weight:700;color:#0C447C;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid #E6F1FB}table{width:100%;border-collapse:collapse;font-size:13px}th{text-align:right;padding:8px 10px;background:#f5f5f2;color:#555;font-weight:600;border-bottom:1px solid #e5e5e3}td{padding:10px;border-bottom:1px solid #f0f0ee;vertical-align:top}tr:last-child td{border:none}.notes{background:#f9f9f7;border-radius:8px;padding:16px;font-size:13px;color:#444;line-height:1.8;margin-top:8px;white-space:pre-wrap}.foot{border-top:1px solid #e5e5e3;padding:24px 36px;display:flex;justify-content:space-between;align-items:flex-end}.sig{border-top:1px solid #aaa;width:160px;text-align:center;padding-top:6px;font-size:11px;color:#888}@media print{body{background:#fff;padding:0}.wrap{border-radius:0}}</style>
+</head><body>
+<div class="wrap">
+<div class="cover">
+  <h1>דוח בדיקת ליקויי בניה</h1>
+  <p>לפי חוק המכר (דירות) התשל"ד — 1974</p>
+  <div class="cgrid">
+    <div class="ci"><label>כתובת הנכס</label><span>${addr}</span></div>
+    <div class="ci"><label>גוש / חלקה / מגרש</label><span>${gush} / ${chelka} / ${migrash}</span></div>
+    <div class="ci"><label>דירה / קומה / בניין</label><span>${apt} / ${floor} / ${bld}</span></div>
+    <div class="ci"><label>תאריך הבדיקה</label><span>${dateStr}</span></div>
+    <div class="ci"><label>שם הרוכש</label><span>${buyer}</span></div>
+    <div class="ci"><label>קבלן / יזם</label><span>${seller}</span></div>
+  </div>
+</div>
+<div class="sbar">
+  <div class="sc"><div class="sn" style="color:#E24B4A">${h}</div><div class="sl">חמורים</div></div>
+  <div class="sc"><div class="sn" style="color:#BA7517">${m}</div><div class="sl">בינוניים</div></div>
+  <div class="sc"><div class="sn" style="color:#7F77DD">${nc}</div><div class="sl">לא תואם מפרט</div></div>
+  <div class="sc"><div class="sn" style="color:#639922">${l}</div><div class="sl">קלים</div></div>
+</div>
+<div class="body">
+  ${roomsHtml||'<p style="color:#999;text-align:center;padding:40px 0">לא הוזנו ליקויים</p>'}
+  ${freeNotes?`<div style="margin-top:20px"><strong style="font-size:14px;color:#333">הערות ומסקנות</strong><div class="notes">${freeNotes}</div></div>`:''}
+</div>
+<div class="foot">
+  <div style="font-size:13px;color:#555;line-height:1.9">בודק: <strong>${insp}</strong><br>תאריך: ${dateStr}</div>
+  <div style="text-align:center"><div class="sig">חתימת הבודק</div></div>
+  <div style="text-align:center"><div class="sig">חתימת הרוכש</div></div>
+</div>
+</div>
+<script>window.print()<\/script>
+</body></html>`;
+
+  const blob=new Blob([html],{type:'text/html;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download='doach-bedek-'+new Date().toLocaleDateString('he-IL').replace(/\//g,'-')+'.html';a.click();
+  URL.revokeObjectURL(url);
+}
+
+renderRooms();
+buildReport();
+</script>
+</body></html>
