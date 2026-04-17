@@ -156,7 +156,7 @@ body{font-family:var(--font-sans);direction:rtl;color:var(--color-text-primary)}
   </div>
   <button class="btn btn-primary btn-full" onclick="buildReport()">רענן דוח</button>
   <button class="btn btn-export btn-full" onclick="exportReport()">ייצוא דוח פורמלי — שמור / הדפס</button>
-  <button class="btn btn-full" onclick="sendPrompt('נסח לי את דוח הבדק בצורה פורמלית-משפטית לפי חוק המכר, כולל כל הליקויים שהוזנו')">ניסוח משפטי-פורמלי על ידי קלוד ↗</button>
+  <button class="btn btn-full" onclick="exportJSON()" style="border-color:#85B7EB;color:#0C447C">📎 ייצוא JSON לניסוח משפטי עם קלוד</button>
   <button class="btn btn-full" style="color:#A32D2D;border-color:#f5c6c6;margin-top:8px" onclick="clearAll()">🗑 נקה את כל הנתונים</button>
 </div>
 </div>
@@ -476,6 +476,41 @@ function exportReport(){
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;a.download='doach-bedek-'+new Date().toLocaleDateString('he-IL').replace(/\//g,'-')+'.html';a.click();
+  URL.revokeObjectURL(url);
+}
+
+function exportJSON(){
+  const data={
+    property:{
+      address:document.getElementById('d-addr').value||'',
+      gush:document.getElementById('d-gush').value||'',
+      chelka:document.getElementById('d-chelka').value||'',
+      migrash:document.getElementById('d-migrash').value||'',
+      apt:document.getElementById('d-apt').value||'',
+      floor:document.getElementById('d-floor').value||'',
+      building:document.getElementById('d-bld').value||'',
+      buyer:document.getElementById('d-buyer').value||'',
+      seller:document.getElementById('d-seller').value||'',
+      date:document.getElementById('d-date').value||'',
+      inspector:document.getElementById('d-inspector').value||'',
+    },
+    notes:document.getElementById('free-notes').value||'',
+    rooms:ROOMS.filter(r=>r.issues.length).map(r=>({
+      name:r.name,
+      issues:r.issues.map(iss=>({
+        description:iss.desc,
+        severity:iss.sev==='high'?'חמור':iss.sev==='med'?'בינוני':iss.sev==='nc'?'לא תואם מפרט':'קל',
+        type:iss.type,
+        note:iss.note||''
+      }))
+    }))
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='doach-bedek-'+new Date().toLocaleDateString('he-IL').replace(/\//g,'-')+'.json';
+  a.click();
   URL.revokeObjectURL(url);
 }
 
