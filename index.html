@@ -126,25 +126,25 @@ body{font-family:var(--font-sans);direction:rtl;color:var(--color-text-primary)}
 
 <div id="page-details" class="page">
   <div class="slbl">פרטי הנכס</div>
-  <div class="fg"><label>כתובת מלאה</label><input id="d-addr" type="text" placeholder="רחוב, מספר, עיר"></div>
+  <div class="fg"><label>כתובת מלאה</label><input id="d-addr" type="text" placeholder="רחוב, מספר, עיר" oninput="saveAll()"></div>
   <div class="r3">
-    <div class="fg"><label>גוש</label><input id="d-gush" type="text"></div>
-    <div class="fg"><label>חלקה</label><input id="d-chelka" type="text"></div>
-    <div class="fg"><label>מגרש</label><input id="d-migrash" type="text"></div>
+    <div class="fg"><label>גוש</label><input id="d-gush" type="text" oninput="saveAll()"></div>
+    <div class="fg"><label>חלקה</label><input id="d-chelka" type="text" oninput="saveAll()"></div>
+    <div class="fg"><label>מגרש</label><input id="d-migrash" type="text" oninput="saveAll()"></div>
   </div>
   <div class="r3">
-    <div class="fg"><label>דירה</label><input id="d-apt" type="text"></div>
-    <div class="fg"><label>קומה</label><input id="d-floor" type="text"></div>
-    <div class="fg"><label>בניין</label><input id="d-bld" type="text"></div>
+    <div class="fg"><label>דירה</label><input id="d-apt" type="text" oninput="saveAll()"></div>
+    <div class="fg"><label>קומה</label><input id="d-floor" type="text" oninput="saveAll()"></div>
+    <div class="fg"><label>בניין</label><input id="d-bld" type="text" oninput="saveAll()"></div>
   </div>
   <div class="slbl">צדדים</div>
   <div class="r2">
-    <div class="fg"><label>שם הרוכש</label><input id="d-buyer" type="text"></div>
-    <div class="fg"><label>שם הקבלן</label><input id="d-seller" type="text"></div>
+    <div class="fg"><label>שם הרוכש</label><input id="d-buyer" type="text" oninput="saveAll()"></div>
+    <div class="fg"><label>שם הקבלן</label><input id="d-seller" type="text" oninput="saveAll()"></div>
   </div>
   <div class="r2">
-    <div class="fg"><label>תאריך בדיקה</label><input id="d-date" type="date"></div>
-    <div class="fg"><label>שם הבודק</label><input id="d-inspector" type="text"></div>
+    <div class="fg"><label>תאריך בדיקה</label><input id="d-date" type="date" onchange="saveAll()"></div>
+    <div class="fg"><label>שם הבודק</label><input id="d-inspector" type="text" oninput="saveAll()"></div>
   </div>
 </div>
 
@@ -152,7 +152,7 @@ body{font-family:var(--font-sans);direction:rtl;color:var(--color-text-primary)}
   <div id="report-area"></div>
   <div class="freebox">
     <label>הערות חופשיות לדוח</label>
-    <textarea id="free-notes" placeholder="הוסף כאן כל הערה, מסקנה, המלצה או פירוט נוסף שיופיע בסוף הדוח..."></textarea>
+    <textarea id="free-notes" placeholder="הוסף כאן כל הערה, מסקנה, המלצה או פירוט נוסף שיופיע בסוף הדוח..." oninput="saveAll()"></textarea>
   </div>
   <button class="btn btn-primary btn-full" onclick="buildReport()">רענן דוח</button>
   <button class="btn btn-export btn-full" onclick="exportReport()">ייצוא דוח פורמלי — שמור / הדפס</button>
@@ -314,7 +314,73 @@ function confirmDel(idx){
   if(confirm('למחוק את הליקוי?')){delIssue(idx);}
 }
 
-function delIssue(idx){activeRoom.issues.splice(idx,1);renderSheet();renderRooms()}
+function delIssue(idx){activeRoom.issues.splice(idx,1);renderSheet();renderRooms();saveAll();}
+
+const STORAGE_KEY='bedek_data_v1';
+
+function saveAll(){
+  try{
+    const data={
+      rooms:ROOMS.map(r=>({id:r.id,issues:r.issues})),
+      details:{
+        addr:document.getElementById('d-addr').value||'',
+        gush:document.getElementById('d-gush').value||'',
+        chelka:document.getElementById('d-chelka').value||'',
+        migrash:document.getElementById('d-migrash').value||'',
+        apt:document.getElementById('d-apt').value||'',
+        floor:document.getElementById('d-floor').value||'',
+        bld:document.getElementById('d-bld').value||'',
+        buyer:document.getElementById('d-buyer').value||'',
+        seller:document.getElementById('d-seller').value||'',
+        date:document.getElementById('d-date').value||'',
+        inspector:document.getElementById('d-inspector').value||'',
+      },
+      freeNotes:document.getElementById('free-notes').value||'',
+      savedAt:new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+    showSaveIndicator();
+  }catch(e){console.error('save error',e);}
+}
+
+function loadAll(){
+  try{
+    const raw=localStorage.getItem(STORAGE_KEY);
+    if(!raw)return false;
+    const data=JSON.parse(raw);
+    if(data.rooms){
+      data.rooms.forEach(saved=>{
+        const room=ROOMS.find(r=>r.id===saved.id);
+        if(room)room.issues=saved.issues||[];
+      });
+    }
+    if(data.details){
+      Object.entries(data.details).forEach(([k,v])=>{
+        const el=document.getElementById('d-'+k);
+        if(el)el.value=v;
+      });
+    }
+    if(data.freeNotes){
+      const fn=document.getElementById('free-notes');
+      if(fn)fn.value=data.freeNotes;
+    }
+    return data.savedAt||true;
+  }catch(e){console.error('load error',e);return false;}
+}
+
+function showSaveIndicator(msg){
+  let ind=document.getElementById('save-ind');
+  if(!ind){
+    ind=document.createElement('div');
+    ind.id='save-ind';
+    ind.style.cssText='position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#0C447C;color:#E6F1FB;font-size:13px;padding:8px 20px;border-radius:20px;z-index:9999;transition:opacity .4s;pointer-events:none;font-family:inherit;white-space:nowrap;';
+    document.body.appendChild(ind);
+  }
+  ind.textContent=msg||'✓ נשמר';
+  ind.style.opacity='1';
+  clearTimeout(ind._t);
+  ind._t=setTimeout(()=>{ind.style.opacity='0';},1800);
+}
 
 function openAdd(){
   pendingImgs=[];
@@ -350,6 +416,7 @@ function saveIssue(){
   closeOv('add-overlay');
   renderSheet();
   renderRooms();
+  saveAll();
 }
 
 function closeOv(id){document.getElementById(id).classList.remove('open')}
@@ -522,12 +589,15 @@ function clearAll(){
     if(el) el.value='';
   });
   document.getElementById('d-date').value=new Date().toISOString().split('T')[0];
+  localStorage.removeItem(STORAGE_KEY);
   renderRooms();
   buildReport();
-  alert('הנתונים נוקו בהצלחה');
+  showSaveIndicator('🗑 נוקה');
 }
 
+const _savedAt=loadAll();
 renderRooms();
 buildReport();
+if(_savedAt){showSaveIndicator('טעון ✓');}
 </script>
 </body></html>
