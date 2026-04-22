@@ -1,4 +1,4 @@
-const CACHE = 'bedek-v1';
+const CACHE = 'bedek-v3';
 const FILES = [
   '/Bedek/',
   '/Bedek/index.html',
