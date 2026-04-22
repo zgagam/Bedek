@@ -128,7 +128,6 @@ body{font-family:var(--font-sans);direction:rtl;color:var(--color-text-primary)}
   </div>
   <div class="slbl">חדרים ואזורים</div>
   <div id="room-list"></div>
-  <button class="btn btn-full" style="border-style:dashed;color:#185FA5;border-color:#85B7EB;margin-top:4px" onclick="openAddRoom()">+ הוסף חדר / אזור</button>
 </div>
 
 <div id="page-details" class="page">
@@ -235,23 +234,6 @@ body{font-family:var(--font-sans);direction:rtl;color:var(--color-text-primary)}
   </div>
 </div>
 
-<div class="overlay" id="addroom-overlay">
-  <div class="sheet">
-    <div class="handle"></div>
-    <div class="sheet-title" style="margin-bottom:16px">הוסף חדר / אזור</div>
-    <div class="fg"><label>שם החדר</label>
-      <input type="text" id="newroom-name" placeholder="למשל: מרפסת 2, חדר כביסה...">
-    </div>
-    <div class="fg"><label>בחר אייקון</label>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px" id="icon-picker"></div>
-    </div>
-    <div class="btn-row">
-      <button class="btn" style="flex:1" onclick="closeOv('addroom-overlay')">ביטול</button>
-      <button class="btn btn-primary" style="flex:2" onclick="saveNewRoom()">הוסף חדר</button>
-    </div>
-  </div>
-</div>
-
 <script>
 const ROOMS=[
   {id:'entrance',icon:'🚪',name:'כניסה ומסדרון',issues:[]},
@@ -301,10 +283,7 @@ function renderRooms(){
         <div class="room-icon">${r.icon}</div>
         <div><div class="room-name">${r.name}</div>${sub?`<div class="room-sub">${sub}</div>`:''}</div>
       </div>
-      <div style="display:flex;align-items:center;gap:8px">
-        <span class="badge ${cls}">${lbl}</span>
-        ${r.custom?`<button onclick="deleteRoom('${r.id}',event)" style="background:none;border:none;cursor:pointer;color:#c7c7cc;font-size:14px;padding:2px 4px">✕</button>`:''}
-      </div>
+      <span class="badge ${cls}">${lbl}</span>
     </div>`;
   });
   document.getElementById('s-high').textContent=th;
@@ -348,7 +327,7 @@ const STORAGE_KEY='bedek_data_v1';
 function saveAll(){
   try{
     const data={
-      rooms:ROOMS.map(r=>({id:r.id,issues:r.issues,custom:r.custom||false,name:r.name,icon:r.icon})),
+      rooms:ROOMS.map(r=>({id:r.id,issues:r.issues})),
       details:{
         addr:document.getElementById('d-addr').value||'',
         gush:document.getElementById('d-gush').value||'',
@@ -378,11 +357,7 @@ function loadAll(){
     if(data.rooms){
       data.rooms.forEach(saved=>{
         const room=ROOMS.find(r=>r.id===saved.id);
-        if(room){
-          room.issues=saved.issues||[];
-        } else if(saved.custom){
-          ROOMS.push({id:saved.id,icon:saved.icon,name:saved.name,issues:saved.issues||[],custom:true});
-        }
+        if(room)room.issues=saved.issues||[];
       });
     }
     if(data.details){
@@ -451,44 +426,6 @@ function saveIssue(){
 }
 
 function closeOv(id){document.getElementById(id).classList.remove('open')}
-
-const ICONS=['🌤','🛁','🧺','🏠','🚗','🌿','📦','🔧','🪟','🏗','🚪','🛋','🍳','🛏','🚿','🪥','🛡'];
-let selectedIcon='🌤';
-
-function openAddRoom(){
-  selectedIcon='🌤';
-  document.getElementById('newroom-name').value='';
-  const picker=document.getElementById('icon-picker');
-  picker.innerHTML=ICONS.map(ic=>`<span onclick="pickIcon(this)" style="font-size:22px;cursor:pointer;padding:6px;border-radius:8px;border:2px solid ${ic===selectedIcon?'#185FA5':'transparent'}">${ic}</span>`).join('');
-  document.getElementById('addroom-overlay').classList.add('open');
-  setTimeout(()=>document.getElementById('newroom-name').focus(),300);
-}
-
-function pickIcon(el){
-  selectedIcon=el.textContent;
-  document.querySelectorAll('#icon-picker span').forEach(s=>{
-    s.style.borderColor=s.textContent===selectedIcon?'#185FA5':'transparent';
-  });
-}
-
-function saveNewRoom(){
-  const name=document.getElementById('newroom-name').value.trim();
-  if(!name){alert('נא להזין שם לחדר');return;}
-  const id='custom_'+Date.now();
-  ROOMS.push({id,icon:selectedIcon,name,issues:[],custom:true});
-  closeOv('addroom-overlay');
-  renderRooms();
-  saveAll();
-}
-
-function deleteRoom(id,e){
-  e.stopPropagation();
-  if(!confirm('למחוק את החדר וכל הליקויים שלו?'))return;
-  const idx=ROOMS.findIndex(r=>r.id===id);
-  if(idx>-1)ROOMS.splice(idx,1);
-  renderRooms();
-  saveAll();
-}
 
 function goPage(name,btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
